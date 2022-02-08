@@ -19,52 +19,56 @@ namespace Backend.Challenge.Controllers
     {
         // GET: api/<NewCommentsController>
         [HttpGet]
-        public Comment Get()
+        public string Get()
         {
-            using (IDocumentStore store = new DocumentStore
-            {
-                Urls = new[]
+
+            return "value";
+
+                
+        }
+        
+        // GET api/<NewCommentsController>/5
+        [HttpGet("{id}")]
+        public Comment Get(string id)
+        {
+
+
+        using (IDocumentStore store = new DocumentStore
+        {
+            Urls = new[]
              {
                "http://localhost:8080"
             },
-                Database = "MyNewDatabase",
-                Conventions = { }
-            })
+            Database = "MyNewDatabase",
+            Conventions = { }
+        })
+        {
+            store.Initialize();
+
+            var exists = store.Maintenance.Server.Send(new GetDatabaseRecordOperation("MyNewDatabase"));
+
+            if (exists == null) store.Maintenance.Server.Send(
+                                new CreateDatabaseOperation(new DatabaseRecord("MyNewDatabase"))); ;
+
+            using (IDocumentSession session = store.OpenSession())
             {
-                store.Initialize();
+                List<Comment> mylist = session.Query<Comment>().ToList();
 
-                var exists = store.Maintenance.Server.Send(new GetDatabaseRecordOperation("MyNewDatabase"));
-
-                if (exists == null) store.Maintenance.Server.Send(
-                                    new CreateDatabaseOperation(new DatabaseRecord("MyNewDatabase"))); ;
-
-                using (IDocumentSession session = store.OpenSession())
-                {
-                    List<Comment> mylist = session.Query<Comment>().ToList();
-
-                    var last = (from x in mylist select x).LastOrDefault();
-                    
-
-                    return last;
+                var last = (from x in mylist where x.Identificador == id select x).LastOrDefault();
 
 
+                return last;
 
 
-                }
 
 
             }
         }
+    }
 
-        // GET api/<NewCommentsController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
 
-        // POST api/<NewCommentsController>
-        [HttpPost]
+    // POST api/<NewCommentsController>
+    [HttpPost]
         public void Post([FromBody] string value)
         {
         }
